@@ -1,0 +1,21 @@
+{{- if .Values.global.history.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rtview-historian.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "rtview-historian.name" . }}
+    helm.sh/chart: {{ include "rtview-historian.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: historian
+      protocol: TCP
+      name: historian
+  selector:
+    app.kubernetes.io/name: {{ include "rtview-historian.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

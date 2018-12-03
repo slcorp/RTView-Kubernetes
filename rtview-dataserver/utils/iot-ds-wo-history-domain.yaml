@@ -1,0 +1,12 @@
+global:
+  image:
+    variant: ""
+  history:
+    enabled: false
+
+rtview-security-proxy:
+  security:
+    username: sl
+    password: sherill-lubinski
+  service:
+    type: LoadBalancer

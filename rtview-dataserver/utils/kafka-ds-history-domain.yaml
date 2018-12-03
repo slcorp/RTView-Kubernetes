@@ -1,0 +1,12 @@
+global:
+  image:
+    variant: kafka
+  history:
+    enabled: true
+
+rtview-security-proxy:
+  security:
+    username: sl
+    password: sherill-lubinski
+  service:
+    type: LoadBalancer

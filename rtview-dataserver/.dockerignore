@@ -1,0 +1,10 @@
+RTViewDataServer*
+rtview-dataserver-bin
+rtview-dataserver-kafka-bin
+*.bat
+chart
+*.vim
+Dockerfile.*
+docker-compose.yml
+.git
+bitbucket-pipelines.yml

@@ -1,0 +1,98 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "rtview-dataserver.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "rtview-dataserver.name" . }}
+    helm.sh/chart: {{ include "rtview-dataserver.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "rtview-dataserver.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "rtview-dataserver.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if .Values.global.image.pullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.global.image.pullSecret }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.global.image.tag }}{{ if .Values.global.image.variant }}-{{ .Values.global.image.variant }}{{ end }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: dataserver
+              containerPort: 3270
+              protocol: TCP
+            - name: ds-internal
+              containerPort: 3272
+              protocol: TCP
+            - name: ds-internal1
+              containerPort: 3275
+              protocol: TCP
+            - name: ds-internal2
+              containerPort: 3276
+              protocol: TCP
+            - name: ds-internal3
+              containerPort: 3278
+              protocol: TCP
+          env:
+            - name: RTV_CMD_ARGS
+              value: -echo -verbose
+            - name: RTV_DATASERVER_URL
+              value: "//{{ include "rtview-dataserver.fullname" . }}:3278"
+            - name: RTV_HISTORY_DB_URL
+              value: "//{{ include "rtview-history-db.fullname" . }}:3306"
+            - name: RTV_HISTORY_DB_NAME
+              value: RTVHISTORY
+            - name: RTV_HISTORY_DB_USER
+              value: "{{ .Values.global.historyDb.username }}"
+            - name: RTV_HISTORY_DB_PASSWORD
+              value: "{{ .Values.global.historyDb.password }}"
+          volumeMounts:
+          - name: project
+            mountPath: /project
+            {{- if .Values.persistence.subPath }}
+            subPath: {{ .Values.persistence.subPath }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3270
+            initialDelaySeconds: 120
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /rtvquery/cache/RTViewDs/Tables
+              port: 3270
+            initialDelaySeconds: 120
+            periodSeconds: 5
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: project
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "rtview-dataserver.fullname" .) }}
+        {{- else }}
+          emptyDir: {}
+        {{- end -}}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

@@ -1,0 +1,21 @@
+{{- if .Values.global.history.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rtview-history-db.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "rtview-history-db.name" . }}
+    helm.sh/chart: {{ include "rtview-history-db.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: mysql
+      protocol: TCP
+      name: mysql
+  selector:
+    app.kubernetes.io/name: {{ include "rtview-history-db.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

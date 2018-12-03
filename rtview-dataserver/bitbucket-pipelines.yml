@@ -1,0 +1,15 @@
+pipelines:
+  default:
+    - step:
+        services:
+          - docker
+        name: Build
+        caches:
+          - docker
+        script:
+          - chmod +x scripts/build-all-versions.sh
+          - ./scripts/build-all-versions.sh
+definitions:
+  services:
+    docker:
+      memory: 3072

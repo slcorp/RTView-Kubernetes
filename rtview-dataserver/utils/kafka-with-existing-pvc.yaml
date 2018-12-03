@@ -1,0 +1,24 @@
+rtview-dataserver:
+  ingress:
+    enabled: true
+    hosts:
+      - kafka-ds.sl.synergy.codes
+  persistence:
+    existingClaim: dataserver
+    subPath: kafka-ds/dataserver
+
+rtview-historian:
+  persistence:
+    existingClaim: dataserver
+    subPath: kafka-ds/dataserver
+
+rtview-history-db:
+  persistence:
+    existingClaim: dataserver
+    subPath: kafka-ds/db
+
+global:
+  image:
+    pullPolicy: Always
+    variant: kafka
+    tag: 4.2.0.0

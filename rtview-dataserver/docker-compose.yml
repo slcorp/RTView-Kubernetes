@@ -1,0 +1,39 @@
+version: "3"
+services:
+  rtview-dataserver:
+    links:
+      - rtview-history-db
+    image: synergycodes/rtview-dataserver:4.1.0.0
+    ports:
+      - "3270:3270"
+      - "3278:3278"
+    environment:
+      RTV_HISTORY_DB_URL: "//rtview-history-db:3306"
+      RTV_HISTORY_DB_NAME: "RTVHISTORY"
+      RTV_HISTORY_DB_PASSWORD: my-secret-pw
+
+  rtview-historian:
+    links:
+      - rtview-dataserver
+      - rtview-history-db
+    image: synergycodes/rtview-dataserver:4.1.0.0-historian
+    ports:
+      - "3267"
+    environment:
+      DATACLIENT_URL: "//rtview-dataserver:3270"
+      RTV_HISTORY_DB_URL: "//rtview-history-db:3306"
+      RTV_HISTORY_DB_NAME: "RTVHISTORY"
+      RTV_HISTORY_DB_PASSWORD: my-secret-pw
+
+  rtview-history-db:
+    image: synergycodes/rtview-dataserver:4.1.0.0-history-db
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "my-secret-pw"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

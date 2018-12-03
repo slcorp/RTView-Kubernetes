@@ -1,0 +1,28 @@
+FROM mysql:5.7
+
+ARG RTV_DATASERVER_VERSION
+
+WORKDIR /usr/src/app
+
+RUN packages="wget unzip" && \
+  apt-get update && \
+  apt-get install -y --no-install-recommends $packages && \
+  wget "http://sldownloads.sl.com/.hi/upload/rtv_cloud/.direct/RTViewDataServer_${RTV_DATASERVER_VERSION}.zip" && \
+  unzip RTViewDataServer*.zip && \
+  rm RTViewDataServer*.zip && \
+  apt-get purge -y --auto-remove $packages && \
+  rm -rf /var/lib/apt/lists/* && \
+  mv RTViewDataServer rtview-dataserver-bin
+
+ENV RTV_APP_ROOT /usr/src/app
+ENV RTV_RUNTIME_ROOT ${RTV_APP_ROOT}/rtview-dataserver-bin
+ENV DB_INIT_PATH "${RTV_RUNTIME_ROOT}/rtvapm/common/dbconfig/create_common_alertdefs_tables_mysql.sql"
+
+RUN chmod 777 "${DB_INIT_PATH}"
+
+ENV MYSQL_DATABASE=RTVHISTORY
+
+RUN sed -i "1iSET SESSION sql_mode = 'ANSI_QUOTES';\n" "${DB_INIT_PATH}"
+RUN cp "${DB_INIT_PATH}" /docker-entrypoint-initdb.d/
+
+RUN rm -Rf "${RTV_APP_ROOT}/*"
